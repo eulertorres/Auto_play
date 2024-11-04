@@ -1,0 +1,33 @@
+Tasks e Atualizações:
+
+Agora vamos fazer um botão para criar uma "Task", onde a partir de uma condição ele realiza uma ação. Vai funcionar assim. Quando apertar o botão de criar a Task, vai criar uma janelinha para editar aquela task. Ela tem três propriedades para editar, condição, posição e ação. 
+
+Condição (duas opções):
+ - Tempo: O usuário ao escolher essa opção a ação vai ser realizada periodicamente
+ - Cor: Ao selecionar o usuário clica na amostra da tela para adquirir uma amostra daquela cor, sempre que ela tiver presente a ação vai ser realizada
+
+Posição: O usuáro clica na tela para definir onde a ação vai ser realizada
+
+Açõa: 
+ - Apenas um click
+ - Clicks em frequência X por Y segundos
+
+Depois de editada podemos salvar aquela Task
+
+Por fim, faça mais dois botões, um para atualizar a amostra da janela (mostrar o que ta atualmente) e outro para manter atualizando constantemente a 15FPS (quando esse botão é apertado aparece a opção de parar)
+
+Faça o seguinte:
+
+Faça com que a amostra da tela seja mostrda do lado direito do programa , e do lado esquerdo tenha os botões organizados.
+
+Ao invés de uma janela isolada para criar a task, vamos fazer uma aba no programa (que aparece no lado esquerdo). Pois quando tem uma janela isolada não consigo clicar na imagem. E também, ao invés de pop-ups com instruções, escreva as instruções na propria interface.
+
+Ao selecionar a cor, mostre um pequeno quadradinho com a preview da cor selecionada.
+
+Mostre um pequeno preview também da posição selecionada com um x e mostrando 20x20px em volta dele
+
+Faça com que o botão de selecionar a janela seja como antes, abrindo uma janelinha pra escolher.
+
+Faça com que editar task so apareça quando eu for criar ou editar uma task
+
+Ao selecionar a área útil, a preview vai mostrar apenas a area util. Mas ao apertar para selecionar a área, vai mostrar a janela inteira
