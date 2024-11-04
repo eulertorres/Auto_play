@@ -1,0 +1,136 @@
+[
+    {
+        "name": "UP_START",
+        "condition_type": "color",
+        "condition_value": [
+            0,
+            93,
+            255
+        ],
+        "condition_position": [
+            2121,
+            677
+        ],
+        "action_type": "sequence",
+        "action_position": null,
+        "frequency": null,
+        "duration": null,
+        "sequence": [
+            [
+                2043,
+                906
+            ],
+            [
+                2077,
+                814
+            ],
+            [
+                2254,
+                626
+            ],
+            [
+                2130,
+                914
+            ],
+            [
+                2130,
+                704
+            ]
+        ],
+        "delay": 0.5
+    },
+    {
+        "name": "POP",
+        "condition_type": "color",
+        "condition_value": [
+            242,
+            20,
+            28
+        ],
+        "condition_position": [
+            2128,
+            659
+        ],
+        "action_type": "click",
+        "action_position": [
+            2130,
+            644
+        ],
+        "frequency": null,
+        "duration": null,
+        "sequence": null,
+        "delay": null
+    },
+    {
+        "name": "spanwa",
+        "condition_type": "color",
+        "condition_value": [
+            0,
+            93,
+            255
+        ],
+        "condition_position": [
+            2263,
+            819
+        ],
+        "action_type": "sequence",
+        "action_position": null,
+        "frequency": null,
+        "duration": null,
+        "sequence": [
+            [
+                2258,
+                848
+            ],
+            [
+                2183,
+                848
+            ]
+        ],
+        "delay": 5.0
+    },
+    {
+        "name": "pop2",
+        "condition_type": "color",
+        "condition_value": [
+            242,
+            20,
+            28
+        ],
+        "condition_position": [
+            2125,
+            703
+        ],
+        "action_type": "click",
+        "action_position": [
+            2124,
+            720
+        ],
+        "frequency": null,
+        "duration": null,
+        "sequence": null,
+        "delay": null
+    },
+    {
+        "name": "dima",
+        "condition_type": "color",
+        "condition_value": [
+            0,
+            93,
+            255
+        ],
+        "condition_position": [
+            2227,
+            232
+        ],
+        "action_type": "click",
+        "action_position": [
+            2221,
+            231
+        ],
+        "frequency": null,
+        "duration": null,
+        "sequence": null,
+        "delay": null
+    }
+]
