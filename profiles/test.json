@@ -1,0 +1,32 @@
+{
+    "tasks": [
+        {
+            "name": "pop2",
+            "condition_type": "color",
+            "condition_value": [
+                242,
+                25,
+                29
+            ],
+            "condition_position": [
+                2061,
+                723
+            ],
+            "action_type": "click",
+            "action_position": [
+                2059,
+                704
+            ],
+            "frequency": null,
+            "duration": null,
+            "sequence": null,
+            "delay": null
+        }
+    ],
+    "selected_area": [
+        1856,
+        174,
+        442,
+        779
+    ]
+}

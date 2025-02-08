@@ -1,136 +1,148 @@
-[
-    {
-        "name": "UP_START",
-        "condition_type": "color",
-        "condition_value": [
-            0,
-            93,
-            255
-        ],
-        "condition_position": [
-            2121,
-            677
-        ],
-        "action_type": "sequence",
-        "action_position": null,
-        "frequency": null,
-        "duration": null,
-        "sequence": [
-            [
-                2043,
-                906
+{
+    "tasks": [
+        {
+            "name": "pop2",
+            "condition_type": "color",
+            "condition_value": [
+                242,
+                25,
+                29
             ],
-            [
-                2077,
-                814
+            "condition_position": [
+                2061,
+                723
             ],
-            [
-                2254,
-                626
-            ],
-            [
-                2130,
-                914
-            ],
-            [
-                2130,
+            "action_type": "click",
+            "action_position": [
+                2059,
                 704
-            ]
-        ],
-        "delay": 0.5
-    },
-    {
-        "name": "POP",
-        "condition_type": "color",
-        "condition_value": [
-            242,
-            20,
-            28
-        ],
-        "condition_position": [
-            2128,
-            659
-        ],
-        "action_type": "click",
-        "action_position": [
-            2130,
-            644
-        ],
-        "frequency": null,
-        "duration": null,
-        "sequence": null,
-        "delay": null
-    },
-    {
-        "name": "spanwa",
-        "condition_type": "color",
-        "condition_value": [
-            0,
-            93,
-            255
-        ],
-        "condition_position": [
-            2263,
-            819
-        ],
-        "action_type": "sequence",
-        "action_position": null,
-        "frequency": null,
-        "duration": null,
-        "sequence": [
-            [
-                2258,
-                848
             ],
-            [
+            "frequency": null,
+            "duration": null,
+            "sequence": null,
+            "delay": null
+        },
+        {
+            "name": "Dima",
+            "condition_type": "color",
+            "condition_value": [
+                0,
+                93,
+                255
+            ],
+            "condition_position": [
+                2191,
+                186
+            ],
+            "action_type": "click",
+            "action_position": [
                 2183,
-                848
-            ]
-        ],
-        "delay": 5.0
-    },
-    {
-        "name": "pop2",
-        "condition_type": "color",
-        "condition_value": [
-            242,
-            20,
-            28
-        ],
-        "condition_position": [
-            2125,
-            703
-        ],
-        "action_type": "click",
-        "action_position": [
-            2124,
-            720
-        ],
-        "frequency": null,
-        "duration": null,
-        "sequence": null,
-        "delay": null
-    },
-    {
-        "name": "dima",
-        "condition_type": "color",
-        "condition_value": [
-            0,
-            93,
-            255
-        ],
-        "condition_position": [
-            2227,
-            232
-        ],
-        "action_type": "click",
-        "action_position": [
-            2221,
-            231
-        ],
-        "frequency": null,
-        "duration": null,
-        "sequence": null,
-        "delay": null
-    }
-]
+                184
+            ],
+            "frequency": null,
+            "duration": null,
+            "sequence": null,
+            "delay": null
+        },
+        {
+            "name": "spawna",
+            "condition_type": "color",
+            "condition_value": [
+                0,
+                93,
+                255
+            ],
+            "condition_position": [
+                2205,
+                812
+            ],
+            "action_type": "sequence",
+            "action_position": null,
+            "frequency": null,
+            "duration": null,
+            "sequence": [
+                [
+                    2206,
+                    846
+                ],
+                [
+                    2118,
+                    842
+                ]
+            ],
+            "delay": 0.8
+        },
+        {
+            "name": "Up",
+            "condition_type": "color",
+            "condition_value": [
+                0,
+                93,
+                255
+            ],
+            "condition_position": [
+                2109,
+                670
+            ],
+            "action_type": "sequence",
+            "action_position": null,
+            "frequency": null,
+            "duration": null,
+            "sequence": [
+                [
+                    1974,
+                    907
+                ],
+                [
+                    2014,
+                    805
+                ],
+                [
+                    2200,
+                    605
+                ],
+                [
+                    2066,
+                    625
+                ],
+                [
+                    2064,
+                    902
+                ],
+                [
+                    2069,
+                    684
+                ]
+            ],
+            "delay": 0.6
+        },
+        {
+            "name": "spawna2",
+            "condition_type": "color",
+            "condition_value": [
+                0,
+                93,
+                255
+            ],
+            "condition_position": [
+                2122,
+                815
+            ],
+            "action_type": "click",
+            "action_position": [
+                2120,
+                845
+            ],
+            "frequency": null,
+            "duration": null,
+            "sequence": null,
+            "delay": null
+        }
+    ],
+    "selected_area": [
+        1856,
+        174,
+        442,
+        779
+    ]
+}

@@ -3,16 +3,18 @@ import threading
 import time
 import os
 import json
+import random
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QPushButton, QLabel, QListWidget,
     QListWidgetItem, QDialog, QVBoxLayout, QHBoxLayout, QWidget, QRadioButton,
     QButtonGroup, QLineEdit, QMessageBox, QSpinBox, QDoubleSpinBox, QGroupBox, QCheckBox, QFileDialog
 )
-from PyQt5.QtGui import QPixmap, QPainter, QPen, QColor, QIcon
-from PyQt5.QtCore import Qt, QRect, QTimer, QPoint
+from PyQt5.QtGui import QPixmap, QPainter, QPen, QColor, QIcon, QMouseEvent
+from PyQt5.QtCore import Qt, QRect, QTimer, QPoint, pyqtSignal, QObject
 
 import pygetwindow as gw
 import pyautogui
+from playsound import playsound
 
 class SelectWindowDialog(QDialog):
     def __init__(self, parent=None):
@@ -62,7 +64,7 @@ class ImageLabel(QLabel):
         self.selecting_color = False
         self.selecting_sequence_positions = False
         self.sequence_positions = []
-        self.color_position = None  # Adicionado para armazenar a posição da cor
+        self.color_position = None
 
     def mousePressEvent(self, event):
         if not self.main_window.window_selected:
@@ -175,9 +177,9 @@ class Task:
         self.name = name
         self.condition_type = condition_type
         self.condition_value = condition_value
-        self.condition_position = condition_position  # Posição para verificar a cor
+        self.condition_position = condition_position  # Position to check the color
         self.action_type = action_type
-        self.action_position = action_position  # Posição para clicar (pode ser None)
+        self.action_position = action_position  # Position to click (can be None)
         self.sequence = sequence
         self.delay = delay
         self.frequency = frequency
@@ -194,18 +196,18 @@ class Task:
             elif self.condition_type == 'color':
                 self.thread = threading.Thread(target=self.run_color_condition)
             self.thread.start()
-            print(f"Task iniciada: {self}")
+            print(f"Task started: {self}")
         else:
-            print("Task já está em execução.")
+            print("Task is already running.")
 
     def stop(self):
         if self.running:
             self.running = False
             if self.thread is not None:
                 self.thread.join()
-            print(f"Task parada: {self}")
+            print(f"Task stopped: {self}")
         else:
-            print("Task já está parada.")
+            print("Task is already stopped.")
 
     def run_time_condition(self):
         while self.running:
@@ -214,20 +216,34 @@ class Task:
 
     def run_color_condition(self):
         while self.running:
-            screenshot = pyautogui.screenshot()
             if self.condition_position is None:
                 print("Posição de verificação da cor não definida.")
                 break
-            pix = screenshot.getpixel(self.condition_position)
+            # Ajuste para considerar a área selecionada
+            if self.main_window.selected_area:
+                region = self.main_window.selected_area  # (x, y, width, height)
+                screenshot = pyautogui.screenshot(region=region)
+                x, y = self.condition_position
+                adjusted_x = x - region[0]
+                adjusted_y = y - region[1]
+                pix = screenshot.getpixel((adjusted_x, adjusted_y))
+            else:
+                screenshot = pyautogui.screenshot()
+                pix = screenshot.getpixel(self.condition_position)
+            #print(f"cor atual {pix[:3]}. Cor condicao {self.condition_value}")
             if pix[:3] == self.condition_value:
+                #print("Acionando ação por cor")
                 self.perform_action()
             time.sleep(0.1)
 
     def perform_action(self):
+        #print("entrei")
         if self.main_window and self.main_window.selected_window:
+            #print("entreiiiiiiii")
             self.main_window.selected_window.activate()
             original_position = pyautogui.position()
             if self.action_type == 'click':
+                #print(f"cliquei em {self.action_position}")
                 pyautogui.click(self.action_position)
             elif self.action_type == 'clicks':
                 end_time = time.time() + self.duration
@@ -243,7 +259,7 @@ class Task:
                     time.sleep(self.delay)
             pyautogui.moveTo(original_position)
         else:
-            print("Janela não selecionada ou inválida.")
+            print("Window not selected or invalid.")
 
     def __str__(self):
         return f"Task(name={self.name}, condition_type={self.condition_type}, action_type={self.action_type})"
@@ -256,7 +272,7 @@ class TaskEditorWidget(QWidget):
         self.task = None
         self.selected_color = None
         self.selected_position = None
-        self.color_position = None  # Posição onde a cor foi selecionada
+        self.color_position = None  # Position where the color was selected
         self.initUI()
 
     def initUI(self):
@@ -465,7 +481,7 @@ class TaskEditorWidget(QWidget):
         self.color_position = position
         r, g, b = color
         self.color_preview.setStyleSheet(f"background-color: rgb({r}, {g}, {b}); border: 1px solid black;")
-        self.main_window.status_label.setText("Cor selecionada.")
+        self.main_window.status_label.setText("Color selected.")
 
     def update_position_preview(self, position):
         self.selected_position = position
@@ -478,6 +494,7 @@ class TaskEditorWidget(QWidget):
             self.position_preview.setPixmap(scaled)
         self.main_window.status_label.setText("Posição selecionada.")
 
+
     def edit_task(self, task):
         # Carrega as informações da task a ser editada
         self.task = task
@@ -487,28 +504,44 @@ class TaskEditorWidget(QWidget):
         if task.condition_type == 'time':
             self.time_interval_spin.setValue(task.condition_value)
         else:
-            self.update_color_preview(task.condition_value)
-        if task.position is not None:
-            self.selected_position = QPoint(task.position[0] - self.main_window.selected_window.left,
-                                            task.position[1] - self.main_window.selected_window.top)
-            self.update_position_preview(self.selected_position)
-        else:
-            self.selected_position = None
-            self.position_preview.clear()
-        self.action_click_radio.setChecked(task.action_type == 'click')
-        self.action_clicks_radio.setChecked(task.action_type == 'clicks')
-        if task.action_type == 'clicks':
-            self.frequency_spin.setValue(task.frequency)
-            self.duration_spin.setValue(task.duration)
-        elif task.action_type == 'sequence':
+            if task.condition_value and task.condition_position:
+                # Ajuste das posições considerando o deslocamento
+                offset_x, offset_y = self.main_window.get_image_offset()
+                self.update_color_preview(
+                    task.condition_value,
+                    QPoint(
+                        task.condition_position[0] - self.main_window.selected_window.left - offset_x,
+                        task.condition_position[1] - self.main_window.selected_window.top - offset_y
+                    )
+                )
+        if task.action_type == 'sequence':
             self.action_sequence_radio.setChecked(True)
             self.sequence_delay_spin.setValue(task.delay)
             self.image_label.sequence_positions = []
+            offset_x, offset_y = self.main_window.get_image_offset()
             for pos in task.sequence:
-                adjusted_pos = QPoint(pos[0] - self.main_window.selected_window.left,
-                                      pos[1] - self.main_window.selected_window.top)
+                adjusted_pos = QPoint(
+                    pos[0] - self.main_window.selected_window.left - offset_x,
+                    pos[1] - self.main_window.selected_window.top - offset_y
+                )
                 self.image_label.sequence_positions.append(adjusted_pos)
             self.update_sequence_preview()
+        else:
+            if task.action_position is not None:
+                offset_x, offset_y = self.main_window.get_image_offset()
+                self.selected_position = QPoint(
+                    task.action_position[0] - self.main_window.selected_window.left - offset_x,
+                    task.action_position[1] - self.main_window.selected_window.top - offset_y
+                )
+                self.update_position_preview(self.selected_position)
+            else:
+                self.selected_position = None
+                self.position_preview.clear()
+            self.action_click_radio.setChecked(task.action_type == 'click')
+            self.action_clicks_radio.setChecked(task.action_type == 'clicks')
+            if task.action_type == 'clicks':
+                self.frequency_spin.setValue(task.frequency)
+                self.duration_spin.setValue(task.duration)
         self.setVisible(True)
 
     def save_task(self):
@@ -617,10 +650,17 @@ class TaskEditorWidget(QWidget):
         self.selected_color = None
         self.color_preview.setStyleSheet("border: 1px solid black;")
 
+class ClickableLabel(QLabel):
+    clicked = pyqtSignal()
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.clicked.emit()
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        # Definir ícone do programa
+        # Set program icon
         script_dir = os.path.dirname(os.path.realpath(__file__))
         icon_path = os.path.join(script_dir, 'resources', 'gato.png')
         self.setWindowIcon(QIcon(icon_path))
@@ -637,6 +677,11 @@ class MainWindow(QMainWindow):
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_screenshot)
+
+        # Audio playback timer
+        self.audio_timer = QTimer()
+        self.audio_timer.timeout.connect(self.play_random_audio)
+        self.schedule_next_audio()
 
     def initUI(self):
         self.status_label = QLabel("")
@@ -665,7 +710,16 @@ class MainWindow(QMainWindow):
         self.live_update_button.clicked.connect(self.toggle_live_update)
         self.live_update_button.setEnabled(False)
 
-        # Botões para salvar e carregar perfis
+        # Buttons to start and stop all tasks
+        self.start_all_button = QPushButton("Iniciar Todas as Tasks")
+        self.start_all_button.clicked.connect(self.start_all_tasks)
+        self.start_all_button.setEnabled(False)
+
+        self.stop_all_button = QPushButton("Parar Todas as Tasks")
+        self.stop_all_button.clicked.connect(self.stop_all_tasks)
+        self.stop_all_button.setEnabled(False)
+
+        # Buttons to save and load profiles
         self.save_profile_button = QPushButton("Salvar Perfil")
         self.save_profile_button.clicked.connect(self.save_profile)
         self.load_profile_button = QPushButton("Carregar Perfil")
@@ -675,7 +729,7 @@ class MainWindow(QMainWindow):
         self.task_editor = TaskEditorWidget(self, self.image_label)
         self.task_editor.setVisible(False)
 
-        # Lista de Tasks
+        # Task list
         self.task_list_widget = QListWidget()
 
         # Layouts
@@ -684,7 +738,7 @@ class MainWindow(QMainWindow):
         center_layout = QVBoxLayout()
         right_layout = QVBoxLayout()
 
-        # Layout da coluna esquerda
+        # Left column layout
         left_layout.setAlignment(Qt.AlignTop)
         left_layout.addWidget(self.select_window_button)
         left_layout.addWidget(self.select_area_button)
@@ -692,6 +746,8 @@ class MainWindow(QMainWindow):
         left_layout.addWidget(self.create_task_button)
         left_layout.addWidget(self.update_sample_button)
         left_layout.addWidget(self.live_update_button)
+        left_layout.addWidget(self.start_all_button)
+        left_layout.addWidget(self.stop_all_button)
         left_layout.addWidget(self.save_profile_button)
         left_layout.addWidget(self.load_profile_button)
         left_layout.addWidget(QLabel("Tasks:"))
@@ -699,34 +755,36 @@ class MainWindow(QMainWindow):
         left_layout.addWidget(self.status_label)
         left_layout.addStretch()
 
-        # Layout da coluna central
+        # Center column layout
         center_layout.setAlignment(Qt.AlignTop)
         center_layout.addWidget(self.image_label)
 
-        # Layout da coluna direita
+        # Right column layout
         right_layout.setAlignment(Qt.AlignTop)
         right_layout.addWidget(self.task_editor)
 
-        # Combina os layouts
+        # Combine layouts
         main_layout.addLayout(left_layout)
         main_layout.addLayout(center_layout)
         main_layout.addLayout(right_layout)
 
-        # Header com título e imagem
+        # Header with title and image
         header_layout = QHBoxLayout()
         header_layout.setAlignment(Qt.AlignCenter)
         title_label = QLabel("Chico player")
         title_label.setStyleSheet("font-size: 24px; font-weight: bold;")
-        # Carrega a imagem
+        # Load the image
         image_path = os.path.join(os.path.dirname(__file__), 'resources', 'gato.png')
-        image_label = QLabel()
+        image_label = ClickableLabel()
+        image_label.setCursor(Qt.PointingHandCursor)
+        image_label.clicked.connect(self.play_meow_sound)
         pixmap = QPixmap(image_path)
         pixmap = pixmap.scaledToHeight(50, Qt.SmoothTransformation)
         image_label.setPixmap(pixmap)
         header_layout.addWidget(title_label)
         header_layout.addWidget(image_label)
 
-        # Layout principal
+        # Main layout
         overall_layout = QVBoxLayout()
         overall_layout.addLayout(header_layout)
         overall_layout.addLayout(main_layout)
@@ -759,10 +817,12 @@ class MainWindow(QMainWindow):
                 self.select_area_button.setEnabled(True)
                 self.update_sample_button.setEnabled(True)
                 self.live_update_button.setEnabled(True)
-                self.status_label.setText(f"Janela selecionada: {self.selected_window_title}")
+                self.status_label.setText(f"Window selected: {self.selected_window_title}")
                 self.image_label.setEnabled(True)
+                self.start_all_button.setEnabled(True)
+                self.stop_all_button.setEnabled(True)
             else:
-                self.status_label.setText("Erro ao selecionar a janela.")
+                self.status_label.setText("Error selecting window.")
 
     def update_screenshot(self):
         if self.selected_window:
@@ -792,7 +852,7 @@ class MainWindow(QMainWindow):
         self.image_label.rect = QRect()
         self.image_label.update()
         self.finish_selection_button.setEnabled(True)
-        self.status_label.setText("Desenhe uma área na imagem.")
+        self.status_label.setText("Draw an area on the image.")
 
     def finish_selection(self):
         if self.image_label.rectangles:
@@ -807,18 +867,18 @@ class MainWindow(QMainWindow):
             window_height = height
             self.selected_area = (window_x, window_y, window_width, window_height)
             self.create_task_button.setEnabled(True)
-            self.status_label.setText("Área selecionada.")
+            self.status_label.setText("Area selected.")
             self.update_screenshot()
         else:
-            self.status_label.setText("Nenhuma área foi selecionada.")
+            self.status_label.setText("No area was selected.")
         self.finish_selection_button.setEnabled(False)
 
     def show_task_editor(self):
         if not self.window_selected:
-            self.status_label.setText("Selecione uma janela primeiro.")
+            self.status_label.setText("Please select a window first.")
             return
         self.task_editor.setVisible(True)
-        self.status_label.setText("Configure a task e clique em 'Salvar'.")
+        self.status_label.setText("Configure the task and click 'Save'.")
 
     def closeEvent(self, event):
         for task in self.tasks:
@@ -829,10 +889,15 @@ class MainWindow(QMainWindow):
     def save_tasks(self, file_path='tasks.json'):
         tasks_data = []
         for task in self.tasks:
+            # Converte a cor de condição para uma tupla, se necessário
+            condition_value = task.condition_value
+            if isinstance(condition_value, list):
+                condition_value = tuple(condition_value)  # Converte lista para tupla
+
             tasks_data.append({
                 'name': task.name,
                 'condition_type': task.condition_type,
-                'condition_value': task.condition_value,
+                'condition_value': condition_value,
                 'condition_position': task.condition_position,
                 'action_type': task.action_type,
                 'action_position': task.action_position,
@@ -841,18 +906,30 @@ class MainWindow(QMainWindow):
                 'sequence': task.sequence,
                 'delay': task.delay
             })
+        data = {
+            'tasks': tasks_data,
+            'selected_area': self.selected_area
+        }
         with open(file_path, 'w') as file:
-            json.dump(tasks_data, file, indent=4)
+            json.dump(data, file, indent=4)
 
     def load_tasks(self, file_path='tasks.json'):
         try:
             with open(file_path, 'r') as file:
-                tasks_data = json.load(file)
+                data = json.load(file)
+                tasks_data = data.get('tasks', [])
+                self.selected_area = data.get('selected_area')
+                self.update_screenshot()
                 for task_data in tasks_data:
+                    # Converte a cor de condição para uma tupla, se estiver em formato de lista
+                    condition_value = task_data['condition_value']
+                    if isinstance(condition_value, list):
+                        condition_value = tuple(condition_value)
+
                     task = Task(
                         task_data['name'],
                         task_data['condition_type'],
-                        task_data['condition_value'],
+                        condition_value,
                         tuple(task_data['condition_position']) if task_data['condition_position'] else None,
                         task_data['action_type'],
                         tuple(task_data['action_position']) if task_data['action_position'] else None,
@@ -869,6 +946,9 @@ class MainWindow(QMainWindow):
                     self.task_list_widget.addItem(list_item)
                     self.task_list_widget.setItemWidget(list_item, task_item)
                     task_item.list_item = list_item
+                self.create_task_button.setEnabled(True)
+                self.start_all_button.setEnabled(True)
+                self.stop_all_button.setEnabled(True)
         except FileNotFoundError:
             pass
 
@@ -880,6 +960,8 @@ class MainWindow(QMainWindow):
         options |= QFileDialog.DontUseNativeDialog
         file_path, _ = QFileDialog.getSaveFileName(self, "Salvar Perfil", profiles_dir, "JSON Files (*.json)", options=options)
         if file_path:
+            if not file_path.endswith('.json'):
+                file_path += '.json'  # Ensure the .json extension is added
             self.save_tasks(file_path)
             self.status_label.setText(f"Perfil salvo em {file_path}")
 
@@ -891,10 +973,47 @@ class MainWindow(QMainWindow):
         options |= QFileDialog.DontUseNativeDialog
         file_path, _ = QFileDialog.getOpenFileName(self, "Carregar Perfil", profiles_dir, "JSON Files (*.json)", options=options)
         if file_path:
+            # Stop all tasks before loading new ones
+            self.stop_all_tasks()
             self.tasks = []
             self.task_list_widget.clear()
             self.load_tasks(file_path)
             self.status_label.setText(f"Perfil carregado de {file_path}")
+
+    def start_all_tasks(self):
+        for i in range(self.task_list_widget.count()):
+            item = self.task_list_widget.item(i)
+            task_item = self.task_list_widget.itemWidget(item)
+            if not task_item.checkbox.isChecked():
+                task_item.checkbox.setChecked(True)
+
+    def stop_all_tasks(self):
+        for i in range(self.task_list_widget.count()):
+            item = self.task_list_widget.item(i)
+            task_item = self.task_list_widget.itemWidget(item)
+            if task_item.checkbox.isChecked():
+                task_item.checkbox.setChecked(False)
+
+    def schedule_next_audio(self):
+        # Schedule the next audio playback
+        interval = random.randint(1800, 7200) * 1000  # Random between 30 min and 2 hours in milliseconds
+        self.audio_timer.start(interval)
+
+    def play_random_audio(self):
+        # Play the audio 1 or 2 times randomly
+        times = random.randint(1, 2)
+        script_dir = os.path.dirname(os.path.realpath(__file__))
+        audio_path = os.path.join(script_dir, 'resources', 'meow.mp3')
+        for _ in range(times):
+            playsound(audio_path)
+            time.sleep(0.5)  # Slight delay between plays
+        self.schedule_next_audio()
+        
+    def play_meow_sound(self):
+        script_dir = os.path.dirname(os.path.realpath(__file__))
+        audio_path = os.path.join(script_dir, 'resources', 'meow.mp3')
+        threading.Thread(target=playsound, args=(audio_path,), daemon=True).start()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

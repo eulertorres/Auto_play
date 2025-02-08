@@ -3,3 +3,4 @@ pygetwindow
 pyautogui
 Pillow
 numpy
+playsound==1.2.2
